@@ -1,0 +1,91 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          bif
+# Short-Description: bifd server
+# Description:      block-chain based server 
+#
+#
+### END INIT INFO
+
+# Quick start-stop-daemon example, derived from Debian /etc/init.d/ssh
+set -e
+
+# Must be a valid filename
+NAME=crossd
+PIDFILE=/var/run/$NAME.pid
+install_dir=/usr/local/cross-agent
+script_dir=${install_dir}/scripts
+#This is the command to be run, give the full pathname
+DAEMON=${install_dir}/bin/crossd
+DAEMON_WATCH=${install_dir}/scripts/cross
+DAEMON_OPTS="--exec $DAEMON_WATCH start --log ${install_dir}/log/daemon.log"
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+
+start(){
+		$DAEMON_WATCH start
+        echo "Starting "$NAME "..."
+
+		# wait for pid file
+		wait_time=0
+        wait_limit=10
+        while [[ ! -f ${install_dir}/scripts/cross.pid && $wait_time -lt $wait_limit ]]; do
+            sleep 1
+            wait_time=$[wait_time+1]
+        done
+        if [ ! $wait_time -lt $wait_limit ]
+        then
+            echo 'cross-agent start fail'
+            exit
+        fi
+
+		$script_dir/start-stop-daemon --start --oknodo --background  --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_OPTS
+        echo "."
+}
+
+stop(){
+        echo "Stopping "$NAME "..."
+		$script_dir/start-stop-daemon --stop --oknodo --pidfile $PIDFILE
+        echo "."
+		$DAEMON_WATCH stop
+}
+
+status(){
+	var=$(ps -ef|grep -w ${install_dir}/bin/agentd |grep -v grep | wc -l);	
+	if [ $var != 0 ];
+	then
+	echo "cross agentd is running";
+	else
+	echo "cross agentd is not running";
+	fi
+	
+	var=$(ps -ef|grep -w ${install_dir}/bin/cross |grep -v grep | wc -l);	
+	if [ $var != 0 ];
+	then
+	echo "cross-agent is running";
+	else
+	echo "cross-agent is not running";
+	fi
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart)
+		stop 
+		sleep 2
+		start
+	;;
+  status)
+	status
+	;;
+  *)
+	echo "Usage: "$1" {start|stop|restart|status}"
+	exit 1
+esac
+
+exit 0

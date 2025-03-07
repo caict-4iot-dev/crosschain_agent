@@ -1,0 +1,177 @@
+syntax = "proto3";
+package protocol;
+import "common.proto";
+import "overlay.proto";
+
+//message interfaces for java
+enum ChainMessageType {
+	CHAIN_TYPE_NONE = 0;
+	CHAIN_HELLO = 10; // response with CHAIN_STATUS = 2;
+	CHAIN_TX_STATUS = 11;
+	CHAIN_PEER_ONLINE = 12;
+	CHAIN_PEER_OFFLINE = 13;
+	CHAIN_PEER_MESSAGE = 14;
+	CHAIN_SUBMITTRANSACTION = 15;
+    CHAIN_LEDGER_HEADER = 16; //订阅最新区块头  [New Request 6]  [Old][New Response 3]
+    CHAIN_CONTRACT_LOG = 17; // smart contract log//指定合约地址Tlog  [New Request 7]   [New Response 5]
+    CHAIN_LEDGER_TXS = 18; // 订阅最新完整区块     [New Request 5]    [Old] [New Response 2]
+	CHAIN_SUBSCRIBE_TX = 19; //response with CHAIN_RESPONSE，//订阅指定bid的交易
+
+    // Response type
+    CHAIN_TX_ENV_STORE = 20; //  [Old][New Response 4] //订阅指定bid的交易      订阅交易   [Old][New Request 4] 
+    SUBSCIBE_TXS = 21; //所有交易状态      [New Request 8]    [New Response 6]
+}
+
+message ChainSubscribeTx{
+	repeated string address = 1;
+}
+
+message ChainResponse{
+		int32 error_code = 1;
+		string error_desc = 2;
+}
+
+message ChainTxStatus {
+	enum TxStatus {
+		UNDEFINED	= 0;
+		CONFIRMED	= 1;	// web server will check tx parameters, signatures etc fist, noitfy CONFIRMED if pass
+		PENDING		= 2;	// master will check futher before put it into pending queue
+		COMPLETE	= 3;	// notify if Tx write ledger successfully
+		FAILURE		= 4;	// notify once failed before broadcast and set error_code
+		APPLY_FAILURE  = 5;  // notify once failed after apply and set error_code
+	};
+
+	TxStatus	status = 1;
+	string		tx_hash = 2;
+	string		source_address = 3;
+	int64		source_account_seq = 4;
+	int64		ledger_seq = 5;			    //on which block this tx records
+	int64		new_account_seq = 6;		//new account sequence if COMPLETE
+	ERRORCODE	error_code = 7;			    //use it if FAIL
+	string		error_desc = 8	;			//error desc
+	int64		timestamp = 9;			
+}
+
+message ChainContractLog {
+	string sender = 1;
+	string data = 2;
+	int64 timestamp = 3;
+}
+
+//1、订阅请求tlog   type =  SUBSCIBE_CONTRACT_LOG 
+message TlogSubscribeRequest{
+    string address = 1;             // 合约地址
+    repeated string topics = 2;     //主题，可选
+}
+
+//3. 每个地址返回一条订阅信息  type = SUBSCIBE_CONTRACT_LOG
+message TlogSubscribeResponse{
+    string address = 1;       // 合约地址
+    repeated Tlog tlogs = 2;   //tlogs
+}
+
+message Tlog{
+    string topic = 1; 
+    repeated string tlog = 2; 
+    int64 timestamp = 3; 
+}
+
+// 2. 订阅交易状态变化，丢弃+成功   type =  SUBSCIBE_TXS data 
+message TxSubscribeRequest{
+    enum TxMonitorStatus {
+        SUCCESS = 0; //上链成功
+        DROP_QUEUE = 1; //队列中删除
+    };
+    TxMonitorStatus status = 1; //监听的交易状态
+}
+// 4. 订阅交易状态变化，丢弃+成功    type = SUBSCIBE_TXS
+message TxSubscribeResponse {
+    enum TxStatus {             //可扩展
+        SUCCESS = 0;            //上链成功
+        DROP_QUEUE = 1;         //队列中删除
+    };
+    bytes  tx_hash = 1;         //交易hash
+    TxStatus status = 2;         //交易状态
+    int64 timestamp = 3;         //交易时间戳
+}
+
+message ManagerContractTlog{
+    enum TopicType{
+        TOPIC_REGISTERAGENT = 0;
+        TOPIC_SUBMIT = 1;
+        TOPIC_STOP = 2;
+        TOPIC_UPDATE_PERIOD = 3;
+        TOPIC_FREEZE = 4;
+        TOPIC_UN_FREEZE = 5;
+    };
+
+    TopicType tlog_type = 1;
+    int32 agent_id = 2; 
+    string agent_bid = 3;
+    TlogRegisterAgent regist_agent = 4;
+    TlogSubmit submit = 5;
+    TlogStop stop = 6;
+    TlogUpdatePeriod update_period = 7;
+    TlogFreeze freeze = 8;
+    TlogUnFreeze un_freeze = 9;
+    bytes metadata = 20;
+}
+
+message TlogRegisterAgent{
+    int32 agent_id = 1;
+    string agent_bid = 2;
+}
+
+message TlogSubmit{
+    enum ErrorCode{
+        CODE_SUCCESS = 0;
+        CODE_INVALID_PARAMS =1;
+        CODE_INVALID_SEQ = 2;
+        CODE_INVALID_AGENT_ID = 3;
+        CODE_INVALID_AGENT_BID = 4;
+        CODE_AGENT_STATUS_FREEZE = 5;
+        CODE_AGENT_STATUS_STOP = 6;
+        CODE_AGENT_UNREGISTERED = 7;
+    }
+    int32 agent_id = 1;
+    string agent_bid = 2;
+    int64 submit_seq = 3;
+    int64 confirm_seq = 4;
+    ErrorCode error_code = 5;
+    string error_msg = 6;
+    bytes metadata = 20;
+}
+
+
+
+message TlogStop{
+    int32 agent_id = 1;
+    string agent_bid = 2;
+    int64 submit_seq = 3;
+    int64 confirm_seq = 4;
+    bytes metadata = 20;
+}
+
+message TlogUpdatePeriod{
+    int32 agent_id = 1;
+    string agent_bid = 2;
+    int64 period = 3;
+    bytes metadata = 20;
+}
+
+message TlogFreeze{
+    int32 agent_id = 1;
+    string agent_bid = 2;
+    int64 submit_seq = 3;
+    int64 confirm_seq = 4;
+}
+
+message TlogUnFreeze{
+    int32 agent_id = 1;
+    string agent_bid = 2;
+    int64 submit_seq = 3;
+    int64 confirm_seq = 4;
+}
+
+
+

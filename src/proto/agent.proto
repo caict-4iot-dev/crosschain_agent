@@ -1,0 +1,27 @@
+syntax = "proto3";
+package protocol;
+//layer1-manager-contract-tlog
+message CrossTxInfo{
+    string crosstxid = 1;
+    string srcbid = 2;
+    string destbid = 3;
+    int64 amount = 4;
+    int32 status = 5;
+    int32 refunded = 6;
+    int64 createtimestamp = 7;
+    int64 executetimestamp = 8;
+    int64 timeout = 9;
+    string errordesc = 10;
+    int64 confirmseq = 11;
+    string sendtxhash = 12;
+    string sendacktol1hash = 13;
+    string sendacktol2hash = 14;
+}
+
+
+
+
+
+
+
+

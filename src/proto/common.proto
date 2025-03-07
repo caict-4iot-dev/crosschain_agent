@@ -1,0 +1,33 @@
+syntax = "proto3";
+package protocol;
+
+
+
+message KeyPair{
+	string key = 1;
+	string value = 2;
+	int64 version = 3;
+}
+
+enum ERRORCODE
+{
+	ERRCODE_SUCCESS							= 0;
+	ERRCODE_FAILED					= 1;
+	ERRCODE_INVALID_PARAMETER				= 2;
+	ERRCODE_ALREADY_EXIST					= 3;
+	ERRCODE_NOT_EXIST						= 4;
+	ERRCODE_TX_TIMEOUT						= 5;
+	ERRCODE_TX_SIZE_TOO_BIG                 = 6;
+};
+
+message AgentStatus{
+    int32 agent_id = 1;
+    string agent_bid = 2;
+    int64 submit_seq = 3;
+    int64 confirm_seq = 4;
+    bool  is_freezon = 5;
+    bool  is_stop = 6;
+    int64 period = 7;
+}
+
+

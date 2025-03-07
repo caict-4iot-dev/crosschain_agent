@@ -1,0 +1,43 @@
+{
+    "layer1": {
+        "http_endpoint":"http://172.17.6.96:17002",                       //一层节点HTTP的IP和端口号
+        "ws_endpoint":"ws://172.17.6.96:17003",                           //一层节点WebSocket的IP和端口号 
+        "cross_contract":"did:bid:efhQ2uEL5NoobhsY31f8yMU9A6qCBkgh",	  //一层跨链合约
+		"chain_code":"",												  
+		"address_prefix":"did:bid:",									  //地址前缀，固定
+		"private_key":"38b8ae7b51673b5b1c4ae8e34540377f67be794fc3fb5384c3b87ccc95235fb3d0a7ffa5438dca4db8d6f1918113729ca9457eae8ccdc2e16868e4360239335f",
+        "fee_limit":2000000000,
+        "gas_price":1,
+        "cross_topic":{
+            "start_tx":"",
+            "send_tx":"",
+            "send_ack":""
+        }
+    }, 
+    "layer2": {
+        "http_endpoint":"http://172.17.6.96:47002",                       //二层节点HTTP的IP和端口号
+        "ws_endpoint":"ws://172.17.6.96:47003",                           //二层节点WebSocket的IP和端口号 
+        "cross_contract":"did:bid:ef252PSR71kSVnVNerTSnnRjo8xx1qopH",	  //二层跨链合约
+		"private_key":"268b7aca9771a498b738aff54cc2fa63ba6b93b9ddbb2ebb6e57c0e0f886c1bfaccaad71e436692941dc4f45af5a47a1ef674378bd5aa38d20f6e58947227c99",
+        "layer2_id":100,
+        "fee_limit":2000000000,
+        "gas_price":1,
+        "cross_topic":{
+            "start_tx":"",
+            "send_tx":"",
+            "send_ack":""
+        }
+    }, 
+    "webserver":{
+        "listen_port":27002,
+        "thread_count":8
+    },
+    "logger": {
+        "expire_days": 10, 
+        "level": "INFO|WARNING|ERROR|FATAL|DEBUG", 
+        "dest": "FILE|STDOUT|STDERR", 
+        "size_capacity": 10, 
+        "time_capacity": 1, 
+        "path": "log/cross.log"
+    }
+}

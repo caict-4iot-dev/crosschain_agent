@@ -1,0 +1,157 @@
+syntax = "proto3";
+package protocol;
+
+import "common.proto";
+
+enum OVERLAY_MESSAGE_TYPE{
+	OVERLAY_MSGTYPE_NONE = 0;
+	OVERLAY_MSGTYPE_PING  = 1;
+	OVERLAY_MSGTYPE_HELLO = 2;
+	OVERLAY_MSGTYPE_LEDGERS = 3;
+    OVERLAY_MSGTYPE_LAYER1RESPONSE= 4;
+}
+
+
+message Hello {
+    int64 agent_id = 1;
+    int64 listening_port = 2;
+    string agent_bid = 3;
+    int64 network_id = 4;
+}
+
+message HelloResponse {
+    int64 agent_id = 1;
+    string agent_bid = 2;
+    int64 submit_seq = 3;
+    int64 confirm_seq = 4;
+    int64 period = 5;
+    bool is_freeze = 6;
+    bool is_stop = 7;
+    ERRORCODE error_code = 8;
+    string error_desc = 9;
+    int64 network_id = 10;
+}
+
+//for peers message
+message Peer {
+	string ip = 1;
+	int64 port = 2;
+	int64 num_failures = 3;
+	int64 next_attempt_time = 4;
+	int64 active_time = 5;
+	int64 connection_id = 6;
+	bool statics = 7;
+}
+
+message Peers {
+    repeated Peer peers = 1;
+}
+
+message Signature {
+	string public_key = 1;
+	bytes sign_data = 2;
+}
+
+message LedgerAndState {
+    int64 seq = 1;
+    bytes block_header = 2;
+	Signature header_sign = 3;
+    bytes block = 4;
+    string metadata = 5;
+}
+
+message SubmitLedgerAndState{
+    LedgerAndState ledger_state = 1;    
+    Signature sign = 2;
+}
+
+message Layer1Response{
+    bytes layger1_response = 1; //MsgResponse
+    Signature sign = 2;
+}
+
+message MsgResponse{
+    enum ResponseType{
+        SUBMIT_RESPONSE = 0;
+        STOP_RESPONSE = 1;
+        UPDATE_PERIOD_RESPONSE = 2;
+        FREEZE_RESPONSE = 3;
+        UNFREEZE_RESPONSE = 4;
+    };
+
+    ResponseType type = 1;
+    int32 agent_id = 2; 
+    string agent_bid = 3;
+    SubmitResponse submit = 4;
+    StopResponse stop = 5;
+    UpdatePeriodResponse update_period = 6;
+    FreezeResponse freeze = 7;
+    UnFreezeResponse un_freeze = 8;
+    bytes metadata = 20;
+}
+
+message SubmitResponse {
+    enum ResponseCode{
+        SUBMIT_SUCCESS = 0;
+        SUBMIT_INVALID_SEQ = 1;
+        SUBMIT_INVALID_AGENT_ID = 2;
+        SUBMIT_INVALID_AGENT_BID = 3;
+        SUBMIT_AGENT_STATUS_FREEZE = 4;
+        SUBMIT_AGENT_STATUS_STOP = 5;
+    }
+    int64 submit_seq = 1;
+    int64 confirm_seq = 2;
+    ResponseCode res_code = 3;
+    string res_msg = 4;
+}
+
+message StopResponse {
+    int64 submit_seq = 1;
+    int64 confirm_seq = 2;
+}
+
+message UpdatePeriodResponse {
+    int64 old_period = 1;
+    int64 new_period = 2;
+}
+
+message FreezeResponse {
+    int64 submit_seq = 1;
+    int64 confirm_seq = 2;
+}
+
+message UnFreezeResponse {
+    int64 submit_seq = 1;
+    int64 confirm_seq = 2;
+}
+
+
+message InputSubmitLayer2State{
+    int32 id = 1;
+    string bid = 2;
+    int64 seq = 3;
+    string block_header = 4;
+    Signature header_sign = 5;
+    bytes metadata = 20;
+}
+
+
+message WsMessage {
+	int64 type = 1; //1: ping
+	bool request = 2; //true :request , false:reponse
+	int64 sequence = 3;
+	bytes data = 4;
+}
+
+
+//for ping messsage
+message Ping {
+    int64 nonce = 1;
+}
+
+//for pong message
+message Pong {
+    int64 nonce = 1;
+}
+
+

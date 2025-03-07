@@ -1,0 +1,9 @@
+# 忽略*.o和*.a文件
+*.[oa]
+.vs
+.idea
+.vscode
+
+*.lo
+src/proto/cpp/*
+
